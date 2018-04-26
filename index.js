@@ -5,10 +5,12 @@ const deepmerge = require('deepmerge');
 
 const SUPPORTED_SERVICES = {
 	'AWS::DynamoDB::Table': require('./services/DynamoDbTable'),
+	//'AWS::Elasticsearch::Domain': require('./services/ElasticsearchDomain')
 };
 
 const DEFAULT_CONFIG = {
 	host: 'http://localhost',
+	region: 'local',
 	ports: {
 		"dynamodb": 4569,
 		"ses": 4579,
@@ -30,7 +32,7 @@ const DEFAULT_CONFIG = {
 	endpoints: {}
 }
 
-class ServerlessLocalstackInitialize {
+class ServerlessLocalPlugin {
 	constructor(serverless, options) {
 		this.serverless = serverless;
 		this.options = options;
@@ -39,14 +41,15 @@ class ServerlessLocalstackInitialize {
 
 		this.resources = this.service.resources && this.service.resources.Resources || {};
 
-		this.generateEndpoints();
+		this.generateConfig();
 
+		// Setup AWS SDK
 		this.awsProvider = this.serverless.getProvider('aws');
-		this.awsProvider.sdk.config.update({region: 'local', endpoint: 'http://localhost'});
+		this.awsProvider.sdk.config.update({region: this.config.region, endpoint: this.config.host});
 		this.awsProvider.sdk.config.setPromisesDependency(require('bluebird'));
 
 		this.commands = {
-			initialize: {
+			local: {
 				usage: 'Initializes localstack services',
 				lifecycleEvents: [
 					'ports',
@@ -66,10 +69,10 @@ class ServerlessLocalstackInitialize {
 		};
 
 		this.hooks = {
-			'before:offline:start:init': () => this.serverless.pluginManager.run(['initialize']),
-			'initialize': () => this.serverless.pluginManager.run(['initialize', 'ports']),
-			'initialize:ports': this.portsHandler.bind(this),
-			'initialize:resources': this.resourcesHandler.bind(this)
+			'before:offline:start:init': () => this.serverless.pluginManager.run(['local']),
+			'local': () => this.serverless.pluginManager.run(['local', 'ports']),
+			'local:ports': this.portsHandler.bind(this),
+			'local:resources': this.resourcesHandler.bind(this)
 
 		};
 	}
@@ -78,14 +81,18 @@ class ServerlessLocalstackInitialize {
 		this.serverless.cli.log(`INITIALIZE: ${message}`);
 	}
 
-	generateEndpoints() {
-		let custom_config = this.service.custom && this.service.custom['serverless-localstack-initialize'] || {};
-		let merged_config = deepmerge(DEFAULT_CONFIG, custom_config);
-		this.endpoints = {};
+	generateConfig() {
+		// Merge default and user-provided config options
+		let custom_config = this.service.custom && this.service.custom['serverless-local'] || {};
+		this.config = deepmerge(DEFAULT_CONFIG, custom_config);
+
+		// Generate endpoints if a custom one was not provided
+		let merged_endpoints = {};
 		Object.keys(DEFAULT_CONFIG.ports).forEach((service_name) => {
-			this.endpoints[service_name] = {};
-			this.endpoints[service_name].endpoint = merged_config.endpoints[service_name] || `${merged_config.host}:${merged_config.ports[service_name]}`
+			merged_endpoints[service_name] = {};
+			merged_endpoints[service_name].endpoint = merged_config.endpoints[service_name] || `${merged_config.host}:${merged_config.ports[service_name]}`
 		})
+		this.config.endpoints = merged_endpoints;
 	}
 
 	portsHandler() {
@@ -115,4 +122,4 @@ class ServerlessLocalstackInitialize {
 	}
 }
 
-module.exports = ServerlessLocalstackInitialize;
+module.exports = ServerlessLocalPlugin;
