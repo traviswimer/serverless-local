@@ -1,0 +1,16 @@
+{
+  "name": "serverless-localstack-initialize",
+  "version": "1.0.0",
+  "description": "Serverless plugin for initializing localstack services with data in an offline/local development environment.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Travis Wimer",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "2.228.1",
+    "bluebird": "3.5.1",
+    "deepmerge": "2.1.0"
+  }
+}
