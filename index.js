@@ -3,10 +3,7 @@
 const Promise = require('bluebird');
 const deepmerge = require('deepmerge');
 
-const SUPPORTED_SERVICES = {
-	'AWS::DynamoDB::Table': require('./services/DynamoDbTable'),
-	//'AWS::Elasticsearch::Domain': require('./services/ElasticsearchDomain')
-};
+const Services = require('./Services');
 
 const DEFAULT_CONFIG = {
 	host: 'http://localhost',
@@ -78,7 +75,7 @@ class ServerlessLocalPlugin {
 	}
 
 	cli_log(message){
-		this.serverless.cli.log(`INITIALIZE: ${message}`);
+		this.serverless.cli.log(`LOCAL: ${message}`);
 	}
 
 	generateConfig() {
@@ -90,35 +87,37 @@ class ServerlessLocalPlugin {
 		let merged_endpoints = {};
 		Object.keys(DEFAULT_CONFIG.ports).forEach((service_name) => {
 			merged_endpoints[service_name] = {};
-			merged_endpoints[service_name].endpoint = merged_config.endpoints[service_name] || `${merged_config.host}:${merged_config.ports[service_name]}`
+			merged_endpoints[service_name].endpoint = this.config.endpoints[service_name] || `${this.config.host}:${this.config.ports[service_name]}`
 		})
 		this.config.endpoints = merged_endpoints;
 	}
 
 	portsHandler() {
-		this.cli_log('Updating AWS endpoints:');
-		this.cli_log(JSON.stringify(this.endpoints));
-		this.awsProvider.sdk.config.update(this.endpoints);
+		this.cli_log('-- START: local:ports --');
+		this.cli_log(Object.keys(this.config.endpoints).map((service)=>`\r\n + ${this.config.endpoints[service].endpoint} -- ${service}`));
+		this.awsProvider.sdk.config.update(this.config.endpoints);
+		this.aws_services = new Services(this.awsProvider.sdk);
+		this.cli_log('-- END: local:ports --');
 	}
 
 	resourcesHandler() {
-		this.cli_log('Creating resources:');
+		this.cli_log('-- START: local:resources --');
 		let resources_promises = Object.keys(this.resources).map((resource_key) => {
 			let resource = this.resources[resource_key];
-			if (SUPPORTED_SERVICES[resource.Type]) {
-				let service = new SUPPORTED_SERVICES[resource.Type](this.awsProvider.sdk);
-				return service.createResource(resource.Properties).then(()=>{
-					this.cli_log(`DynamoDB table "${resource.Properties.TableName}" created.`);
+			if (this.aws_services[resource.Type]) {
+				let service = this.aws_services[resource.Type];
+				return service.createResource(resource.Properties).then((message)=>{
+					this.cli_log(message);
 				}).catch((err) => {
-					if(err.name === 'ResourceInUseException'){
-						this.cli_log(`DynamoDB table "${resource.Properties.TableName}" already exists. Skipping...`);
-					}
+					this.cli_log(err);
 				});
 			} else {
 				return Promise.resolve();
 			}
 		});
-		return Promise.all(resources_promises);
+		return Promise.all(resources_promises).then(()=>{
+			this.cli_log('-- END: local:resources --');
+		});
 	}
 }
 

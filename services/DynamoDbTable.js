@@ -9,7 +9,15 @@ class DynamoDbTable {
 		if (resource_properties.StreamSpecification && resource_properties.StreamSpecification.StreamViewType) {
 			resource_properties.StreamSpecification.StreamEnabled = true;
 		}
-		return this.db.createTable(resource_properties).promise();
+		return this.db.createTable(resource_properties).promise().then(()=>{
+			return `DynamoDB table "${resource_properties.TableName}" created.`;
+		}).catch((error)=>{
+			if(error.name === 'ResourceInUseException'){
+				return `DynamoDB table "${resource_properties.TableName}" already exists. Skipping...`;
+			}else{
+				throw error;
+			}
+		});
 	}
 
 	populate(data) {}
