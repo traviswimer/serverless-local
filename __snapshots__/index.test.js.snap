@@ -1,0 +1,135 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ServerlessLocalPlugin constructor() default config is used if no user config provided 1`] = `
+Object {
+  "endpoints": Object {
+    "cloudformation": Object {
+      "endpoint": "http://localhost:4581",
+    },
+    "cloudwatch": Object {
+      "endpoint": "http://localhost:4582",
+    },
+    "dynamodb": Object {
+      "endpoint": "http://localhost:4569",
+    },
+    "dynamodbstreams": Object {
+      "endpoint": "http://localhost:4570",
+    },
+    "es": Object {
+      "endpoint": "http://localhost:4578",
+    },
+    "firehose": Object {
+      "endpoint": "http://localhost:4573",
+    },
+    "kinesis": Object {
+      "endpoint": "http://localhost:4568",
+    },
+    "redshift": Object {
+      "endpoint": "http://localhost:4577",
+    },
+    "route53": Object {
+      "endpoint": "http://localhost:4580",
+    },
+    "s3": Object {
+      "endpoint": "http://localhost:4572",
+    },
+    "ses": Object {
+      "endpoint": "http://localhost:4579",
+    },
+    "sns": Object {
+      "endpoint": "http://localhost:4575",
+    },
+    "sqs": Object {
+      "endpoint": "http://localhost:4576",
+    },
+    "ssm": Object {
+      "endpoint": "http://localhost:4583",
+    },
+  },
+  "host": "http://localhost",
+  "ports": Object {
+    "cloudformation": 4581,
+    "cloudwatch": 4582,
+    "dynamodb": 4569,
+    "dynamodbstreams": 4570,
+    "es": 4578,
+    "firehose": 4573,
+    "kinesis": 4568,
+    "redshift": 4577,
+    "route53": 4580,
+    "s3": 4572,
+    "ses": 4579,
+    "sns": 4575,
+    "sqs": 4576,
+    "ssm": 4583,
+  },
+  "region": "local",
+}
+`;
+
+exports[`ServerlessLocalPlugin constructor() user config will override default 1`] = `
+Object {
+  "endpoints": Object {
+    "cloudformation": Object {
+      "endpoint": "http://otherhost:3333",
+    },
+    "cloudwatch": Object {
+      "endpoint": "http://otherhost:4582",
+    },
+    "dynamodb": Object {
+      "endpoint": "http://otherhost:1111",
+    },
+    "dynamodbstreams": Object {
+      "endpoint": "https://randomhost:1234",
+    },
+    "es": Object {
+      "endpoint": "http://otherhost:4578",
+    },
+    "firehose": Object {
+      "endpoint": "http://otherhost:4573",
+    },
+    "kinesis": Object {
+      "endpoint": "http://otherhost:4568",
+    },
+    "redshift": Object {
+      "endpoint": "http://otherhost:2222",
+    },
+    "route53": Object {
+      "endpoint": "http://randomhost:4321",
+    },
+    "s3": Object {
+      "endpoint": "http://otherhost:4572",
+    },
+    "ses": Object {
+      "endpoint": "http://otherhost:4579",
+    },
+    "sns": Object {
+      "endpoint": "http://otherhost:4575",
+    },
+    "sqs": Object {
+      "endpoint": "http://otherhost:4444",
+    },
+    "ssm": Object {
+      "endpoint": "http://otherhost:4583",
+    },
+  },
+  "host": "http://otherhost",
+  "ports": Object {
+    "cloudformation": 3333,
+    "cloudwatch": 4582,
+    "dynamodb": 1111,
+    "dynamodbstreams": 4570,
+    "es": 4578,
+    "firehose": 4573,
+    "kinesis": 4568,
+    "redshift": 2222,
+    "route53": 4580,
+    "s3": 4572,
+    "ses": 4579,
+    "sns": 4575,
+    "sqs": 4444,
+    "ssm": 4583,
+  },
+  "region": "elsewhere",
+}
+`;
