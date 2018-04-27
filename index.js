@@ -48,10 +48,7 @@ class ServerlessLocalPlugin {
 		this.commands = {
 			local: {
 				usage: 'Initializes localstack services',
-				lifecycleEvents: [
-					'ports',
-					'resources'
-				],
+				lifecycleEvents: ['ports', 'resources'],
 				commands: {
 					ports: {
 						usage: 'Updates AWS sdk to use localstack ports',
@@ -66,15 +63,14 @@ class ServerlessLocalPlugin {
 		};
 
 		this.hooks = {
-			'before:offline:start:init': () => this.serverless.pluginManager.run(['local']),
-			'local': () => this.serverless.pluginManager.run(['local', 'ports']),
+			'before:offline:start:init': () => this.serverless.pluginManager.spawn('local'),
+
 			'local:ports': this.portsHandler.bind(this),
 			'local:resources': this.resourcesHandler.bind(this)
-
 		};
 	}
 
-	cli_log(message){
+	cli_log(message) {
 		this.serverless.cli.log(`LOCAL: ${message}`);
 	}
 
@@ -94,7 +90,7 @@ class ServerlessLocalPlugin {
 
 	portsHandler() {
 		this.cli_log('-- START: local:ports --');
-		this.cli_log(Object.keys(this.config.endpoints).map((service)=>`\r\n + ${this.config.endpoints[service].endpoint} -- ${service}`));
+		this.cli_log(Object.keys(this.config.endpoints).map((service) => `\r\n + ${this.config.endpoints[service].endpoint} -- ${service}`));
 		this.awsProvider.sdk.config.update(this.config.endpoints);
 		this.aws_services = new Services(this.awsProvider.sdk);
 		this.cli_log('-- END: local:ports --');
@@ -106,7 +102,7 @@ class ServerlessLocalPlugin {
 			let resource = this.resources[resource_key];
 			if (this.aws_services[resource.Type]) {
 				let service = this.aws_services[resource.Type];
-				return service.createResource(resource.Properties).then((message)=>{
+				return service.createResource(resource.Properties).then((message) => {
 					this.cli_log(message);
 				}).catch((err) => {
 					this.cli_log(err);
@@ -115,7 +111,7 @@ class ServerlessLocalPlugin {
 				return Promise.resolve();
 			}
 		});
-		return Promise.all(resources_promises).then(()=>{
+		return Promise.all(resources_promises).then(() => {
 			this.cli_log('-- END: local:resources --');
 		});
 	}
