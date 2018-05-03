@@ -86,6 +86,7 @@ class ServerlessLocalPlugin {
 			merged_endpoints[service_name].endpoint = this.config.endpoints[service_name] || `${this.config.host}:${this.config.ports[service_name]}`
 		})
 		this.config.endpoints = merged_endpoints;
+		delete this.config.ports; // the "ports" may now be out of sync, so its deleted to avoid accidentally using it.
 	}
 
 	portsHandler() {
