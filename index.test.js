@@ -66,4 +66,43 @@ describe('ServerlessLocalPlugin', () => {
 			expect(plugin.awsProvider.sdk.config.update.mock.calls[1][0]).toMatchSnapshot();
 		});
 	});
+
+	describe('resourcesHandler()', () => {
+		test('creates each resource with the provided properties', () => {
+			let plugin = new ServerlessLocalPlugin(serverless);
+			plugin.resources = {
+				resource1: {
+					Type: 'type1',
+					Properties: {
+						resource1_prop1: 'prop1'
+					}
+				},
+				resource2: {
+					Type: 'type2',
+					Properties: {
+						resource2_prop1: 'prop1'
+					}
+				},
+				resource3: {
+					Type: 'type1',
+					Properties: {
+						resource3_prop1: 'prop1'
+					}
+				}
+			}
+			plugin.aws_services = {
+				type1: {
+					createResource: jest.fn(()=>Promise.resolve())
+				},
+				type2: {
+					createResource: jest.fn(()=>Promise.resolve())
+				}
+			}
+			return plugin.resourcesHandler().then(()=>{
+				expect(plugin.aws_services.type1.createResource.mock.calls[0][0]).toEqual(plugin.resources.resource1.Properties);
+				expect(plugin.aws_services.type2.createResource.mock.calls[0][0]).toEqual(plugin.resources.resource2.Properties);
+				expect(plugin.aws_services.type1.createResource.mock.calls[1][0]).toEqual(plugin.resources.resource3.Properties);
+			});
+		});
+	});
 });
