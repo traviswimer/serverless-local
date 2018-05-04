@@ -101,3 +101,50 @@ Object {
   "region": "elsewhere",
 }
 `;
+
+exports[`ServerlessLocalPlugin portsHandler() updates AWS SDK with config endpoints 1`] = `
+Object {
+  "cloudformation": Object {
+    "endpoint": "http://localhost:4581",
+  },
+  "cloudwatch": Object {
+    "endpoint": "http://localhost:4582",
+  },
+  "dynamodb": Object {
+    "endpoint": "http://localhost:4569",
+  },
+  "dynamodbstreams": Object {
+    "endpoint": "http://localhost:4570",
+  },
+  "es": Object {
+    "endpoint": "http://localhost:4578",
+  },
+  "firehose": Object {
+    "endpoint": "http://localhost:4573",
+  },
+  "kinesis": Object {
+    "endpoint": "http://localhost:4568",
+  },
+  "redshift": Object {
+    "endpoint": "http://localhost:4577",
+  },
+  "route53": Object {
+    "endpoint": "http://localhost:4580",
+  },
+  "s3": Object {
+    "endpoint": "http://localhost:4572",
+  },
+  "ses": Object {
+    "endpoint": "http://localhost:4579",
+  },
+  "sns": Object {
+    "endpoint": "http://localhost:4575",
+  },
+  "sqs": Object {
+    "endpoint": "http://localhost:4576",
+  },
+  "ssm": Object {
+    "endpoint": "http://localhost:4583",
+  },
+}
+`;

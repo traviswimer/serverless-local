@@ -2,6 +2,7 @@ const Serverless = require('serverless');
 const Promise = require('bluebird');
 
 const ServerlessLocalPlugin = require('./index');
+jest.mock('./Services')
 
 var serverless;
 describe('ServerlessLocalPlugin', () => {
@@ -55,6 +56,14 @@ describe('ServerlessLocalPlugin', () => {
 			}
 			let plugin = new ServerlessLocalPlugin(serverless);
 			expect(plugin.config).toMatchSnapshot();
+		});
+	});
+
+	describe('portsHandler()', () => {
+		test('updates AWS SDK with config endpoints', () => {
+			let plugin = new ServerlessLocalPlugin(serverless);
+			plugin.portsHandler();
+			expect(plugin.awsProvider.sdk.config.update.mock.calls[1][0]).toMatchSnapshot();
 		});
 	});
 });
