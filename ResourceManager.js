@@ -28,7 +28,7 @@ class ResourceManager {
 			});
 		}else{
 			// Just ignore any resource types that don't have a mapping
-			return Promise.resolve();
+			return Promise.resolve(`${resource_name} -- '${resource.Type}' not supported. Skipping...`);
 		}
 	}
 }
