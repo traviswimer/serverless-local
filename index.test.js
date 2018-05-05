@@ -2,7 +2,9 @@ const Serverless = require('serverless');
 const Promise = require('bluebird');
 
 const ServerlessLocalPlugin = require('./index');
-jest.mock('./Services')
+
+jest.mock('./ResourceManager');
+const ResourceManager = require('./ResourceManager');
 
 var serverless;
 describe('ServerlessLocalPlugin', () => {
@@ -46,7 +48,7 @@ describe('ServerlessLocalPlugin', () => {
 						"dynamodb": 1111,
 						"redshift": 2222,
 						"cloudformation": 3333,
-						"sqs": 4444,
+						"sqs": 4444
 					},
 					endpoints: {
 						dynamodbstreams: 'https://randomhost:1234',
@@ -90,18 +92,11 @@ describe('ServerlessLocalPlugin', () => {
 					}
 				}
 			}
-			plugin.aws_services = {
-				type1: {
-					createResource: jest.fn(()=>Promise.resolve())
-				},
-				type2: {
-					createResource: jest.fn(()=>Promise.resolve())
-				}
-			}
-			return plugin.resourcesHandler().then(()=>{
-				expect(plugin.aws_services.type1.createResource.mock.calls[0][0]).toEqual(plugin.resources.resource1.Properties);
-				expect(plugin.aws_services.type2.createResource.mock.calls[0][0]).toEqual(plugin.resources.resource2.Properties);
-				expect(plugin.aws_services.type1.createResource.mock.calls[1][0]).toEqual(plugin.resources.resource3.Properties);
+			plugin.resource_manager = new ResourceManager();
+			return plugin.resourcesHandler().then(() => {
+				Object.keys(plugin.resources).forEach((resource, index) => {
+					expect(plugin.resource_manager.createResource.mock.calls[index][0]).toEqual({resource_name: resource, resource: plugin.resources[resource]});
+				});
 			});
 		});
 	});

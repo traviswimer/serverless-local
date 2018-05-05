@@ -3,7 +3,7 @@
 const Promise = require('bluebird');
 const deepmerge = require('deepmerge');
 
-const Services = require('./Services');
+const ResourceManager = require('./ResourceManager');
 
 const DEFAULT_CONFIG = {
 	host: 'http://localhost',
@@ -48,7 +48,9 @@ class ServerlessLocalPlugin {
 		this.commands = {
 			local: {
 				usage: 'Initializes localstack services',
-				lifecycleEvents: ['ports', 'resources'],
+				lifecycleEvents: [
+					'ports', 'resources'
+				],
 				commands: {
 					ports: {
 						usage: 'Updates AWS sdk to use localstack ports',
@@ -93,7 +95,7 @@ class ServerlessLocalPlugin {
 		this.cli_log('-- START: local:ports --');
 		this.cli_log(Object.keys(this.config.endpoints).map((service) => `\r\n + ${this.config.endpoints[service].endpoint} -- ${service}`));
 		this.awsProvider.sdk.config.update(this.config.endpoints);
-		this.aws_services = new Services(this.awsProvider.sdk);
+		this.resource_manager = new ResourceManager(this.awsProvider.sdk);
 		this.cli_log('-- END: local:ports --');
 	}
 
@@ -101,16 +103,11 @@ class ServerlessLocalPlugin {
 		this.cli_log('-- START: local:resources --');
 		let resources_promises = Object.keys(this.resources).map((resource_key) => {
 			let resource = this.resources[resource_key];
-			if (this.aws_services[resource.Type]) {
-				let service = this.aws_services[resource.Type];
-				return service.createResource(resource.Properties).then((message) => {
-					this.cli_log(message);
-				}).catch((err) => {
-					this.cli_log(err);
-				});
-			} else {
-				return Promise.resolve();
-			}
+			return this.resource_manager.createResource({resource_name: resource_key, resource: resource}).then((message) => {
+				this.cli_log(message);
+			}).catch((err) => {
+				this.cli_log(err);
+			});
 		});
 		return Promise.all(resources_promises).then(() => {
 			this.cli_log('-- END: local:resources --');

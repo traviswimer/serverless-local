@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ResourceManager createResource() calls the service's create method with the resource properties 1`] = `
+Array [
+  Object {
+    "serviceType1_prop1": "serviceType1_prop1",
+    "serviceType1_prop2": Object {
+      "serviceType1_prop2a": "serviceType1_prop2a",
+    },
+    "serviceType1_prop3": "serviceType1_prop3",
+  },
+]
+`;
