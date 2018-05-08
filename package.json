@@ -11,7 +11,8 @@
   "dependencies": {
     "aws-sdk": "2.228.1",
     "bluebird": "3.5.1",
-    "deepmerge": "2.1.0"
+    "deepmerge": "2.1.0",
+    "traverse": "0.6.6"
   },
   "devDependencies": {
     "jest": "22.4.3",

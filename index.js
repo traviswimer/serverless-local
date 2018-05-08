@@ -4,6 +4,7 @@ const Promise = require('bluebird');
 const deepmerge = require('deepmerge');
 
 const ResourceManager = require('./ResourceManager');
+const services_mapping = require('./services_mapping');
 
 const DEFAULT_CONFIG = {
 	host: 'http://localhost',
@@ -37,6 +38,8 @@ class ServerlessLocalPlugin {
 		this.service = serverless.service;
 
 		this.resources = this.service.resources && this.service.resources.Resources || {};
+
+		this.cli_log = this.cli_log.bind(this);
 
 		this.generateConfig();
 
@@ -95,21 +98,13 @@ class ServerlessLocalPlugin {
 		this.cli_log('-- START: local:ports --');
 		this.cli_log(Object.keys(this.config.endpoints).map((service) => `\r\n + ${this.config.endpoints[service].endpoint} -- ${service}`));
 		this.awsProvider.sdk.config.update(this.config.endpoints);
-		this.resource_manager = new ResourceManager(this.awsProvider.sdk);
+		this.resource_manager = new ResourceManager(this.awsProvider.sdk, {log_fn: this.cli_log});
 		this.cli_log('-- END: local:ports --');
 	}
 
 	resourcesHandler() {
 		this.cli_log('-- START: local:resources --');
-		let resources_promises = Object.keys(this.resources).map((resource_key) => {
-			let resource = this.resources[resource_key];
-			return this.resource_manager.createResource({resource_name: resource_key, resource: resource}).then((message) => {
-				this.cli_log(message);
-			}).catch((err) => {
-				this.cli_log(err);
-			});
-		});
-		return Promise.all(resources_promises).then(() => {
+		return this.resource_manager.createResources(this.resources).then(() => {
 			this.cli_log('-- END: local:resources --');
 		});
 	}
