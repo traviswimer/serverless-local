@@ -29,21 +29,16 @@ class ResourceManager {
 			// Create the resource
 			return resource_instance[service_data.createMethod](resource_properties).promise().then((resource_info) => {
 				var info;
-				if (resource.Type === 'AWS::KinesisFirehose::DeliveryStream') {
-					// Firehoses don't put the data inside a property
-					info = resource_info;
+				if (service_data.process_resource_info) {
+					info = service_data.process_resource_info(resource_info, resource_properties);
 				} else {
-					// For whatever reason, AWS seems to return an object with a single property.
+					// Most services seem to return an object with a single property.
 					// This property contains the relevant info, so it is pulled out here.
 					let first_property = Object.keys(resource_info)[0];
 					info = resource_info[first_property] || {};
 				}
 				info.AWS_TYPE = resource.Type;
 
-				// ARN isn't provided by the response for buckets
-				if (resource.Type === 'AWS::S3::Bucket') {
-					info.Arn = `arn:aws:s3:::${resource_properties.Bucket}`;
-				}
 				this.resources_info[resource_name] = info;
 				return `${service_data.sdk_class} -- "${resource_name}" created.`;
 			}).catch((error) => {

@@ -25,6 +25,14 @@ module.exports = {
 		},
 		createMethod: 'createBucket',
 		already_exists_error: 'BucketAlreadyExists',
+		process_resource_info: (creation_response, resource_input) => {
+			let first_property = Object.keys(resource_info)[0];
+			creation_response = resource_info[first_property] || {};
+
+			// ARN isn't provided by the response for buckets
+			creation_response.Arn = `arn:aws:s3:::${resource_input.Bucket}`;
+			return creation_response;
+		},
 		override_properties: (properties) => {
 			// the SDK uses "Bucket" instead of "BucketName"
 			properties.Bucket = properties.BucketName;
@@ -51,6 +59,11 @@ module.exports = {
 		sdk_class: 'Firehose',
 		createMethod: 'createDeliveryStream',
 		already_exists_error: 'ResourceAlreadyExistsException',
+		process_resource_info: (creation_response, resource_input) => {
+			// Unlike most services, Firehose doesn't nest data inside an
+			// object property, so just return the data as is.
+			return creation_response;
+		},
 		override_properties: {}
 	}
 }
