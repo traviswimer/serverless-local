@@ -26,8 +26,8 @@ module.exports = {
 		createMethod: 'createBucket',
 		already_exists_error: 'BucketAlreadyExists',
 		process_resource_info: (creation_response, resource_input) => {
-			let first_property = Object.keys(resource_info)[0];
-			creation_response = resource_info[first_property] || {};
+			let first_property = Object.keys(creation_response)[0];
+			creation_response = creation_response[first_property] || {};
 
 			// ARN isn't provided by the response for buckets
 			creation_response.Arn = `arn:aws:s3:::${resource_input.Bucket}`;
