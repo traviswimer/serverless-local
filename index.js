@@ -99,6 +99,7 @@ class ServerlessLocalPlugin {
 		this.cli_log(Object.keys(this.config.endpoints).map((service) => `\r\n + ${this.config.endpoints[service].endpoint} -- ${service}`));
 		this.awsProvider.sdk.config.update(this.config.endpoints);
 		this.resource_manager = new ResourceManager(this.awsProvider.sdk, {log_fn: this.cli_log});
+		process.env.LOCAL_AWS_ENDPOINTS = JSON.stringify(this.config.endpoints);
 		this.cli_log('-- END: local:ports --');
 	}
 
