@@ -52,7 +52,7 @@ class ServerlessLocalPlugin {
 			local: {
 				usage: 'Initializes localstack services',
 				lifecycleEvents: [
-					'ports', 'resources'
+					'ports', 'resources', 'initialize'
 				],
 				commands: {
 					ports: {
@@ -60,7 +60,11 @@ class ServerlessLocalPlugin {
 						lifecycleEvents: ['init']
 					},
 					resources: {
-						usage: 'Initializes localstack resources',
+						usage: 'Creates localstack resources',
+						lifecycleEvents: ['init']
+					},
+					initialize: {
+						usage: 'Performs initialization on each resource',
 						lifecycleEvents: ['init']
 					}
 				}
@@ -71,7 +75,8 @@ class ServerlessLocalPlugin {
 			'before:offline:start:init': () => this.serverless.pluginManager.spawn('local'),
 
 			'local:ports': this.portsHandler.bind(this),
-			'local:resources': this.resourcesHandler.bind(this)
+			'local:resources': this.resourcesHandler.bind(this),
+			'local:initialize': this.initializeHandler.bind(this)
 		};
 	}
 
@@ -83,6 +88,12 @@ class ServerlessLocalPlugin {
 		// Merge default and user-provided config options
 		let custom_config = this.service.custom && this.service.custom['serverless-local'] || {};
 		this.config = deepmerge(DEFAULT_CONFIG, custom_config);
+
+		// Ensure a "resource_options" object exists for each resource
+		this.config.resource_options = this.config.resource_options || {};
+		Object.keys(this.resources).forEach((resource_key) => {
+			this.config.resource_options[resource_key] = this.config.resource_options[resource_key] || {};
+		});
 
 		// Generate endpoints if a custom one was not provided
 		let merged_endpoints = {};
@@ -107,6 +118,22 @@ class ServerlessLocalPlugin {
 		this.cli_log('-- START: local:resources --');
 		return this.resource_manager.createResources(this.resources).then(() => {
 			this.cli_log('-- END: local:resources --');
+		});
+	}
+
+	initializeHandler() {
+		this.cli_log('-- START: local:initialize --');
+		let initialize_promises = Object.keys(this.resources).map((resource_key) => {
+			let resource = this.resources[resource_key];
+			let service_data = services_mapping[resource.Type] || {};
+			if( service_data.initialize ){
+				return service_data.initialize(this.awsProvider.sdk, resource, this.config.resource_options[resource_key]);
+			}else{
+				return Promise.resolve();
+			}
+		});
+		return Promise.all(initialize_promises).then(()=>{
+			this.cli_log('-- END: local:initialize --');
 		});
 	}
 }

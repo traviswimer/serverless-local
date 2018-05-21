@@ -1,3 +1,6 @@
+const path = require('path');
+const Promise = require('bluebird');
+
 module.exports = {
 	'AWS::DynamoDB::Table': {
 		sdk_class: 'DynamoDB',
@@ -12,6 +15,19 @@ module.exports = {
 				}
 			}
 			return properties;
+		},
+		initialize: (aws_sdk, resource_props, resource_options) => {
+			// Populate db with documents
+			if (resource_options.documents_path) {
+				let db = new aws_sdk.DynamoDB.DocumentClient();
+				let absolute_docs_path = path.join(process.cwd(), resource_options.documents_path);
+				let docs = require(absolute_docs_path);
+				let documents_promises = docs.map((doc) => {
+					return db.put({TableName: resource_props.Properties.TableName, Item: doc}).promise();
+				});
+
+				return Promise.all(documents_promises);
+			}
 		}
 	},
 	'AWS::SES::ConfigurationSet': {
