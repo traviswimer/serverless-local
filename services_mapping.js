@@ -69,6 +69,41 @@ module.exports = {
 			// Version may be a number, but the AWS sdk requires a string
 			properties.ElasticsearchVersion = properties.ElasticsearchVersion.toString();
 			return properties;
+		},
+		initialize: (aws_sdk, resource_props, resource_options) => {
+			process.env.ES_ENDPOINT = 'http://localhost:4571';
+			let es_client = require('elasticsearch').Client({
+				hosts: [process.env.ES_ENDPOINT],
+				connectionClass: require('http-aws-es'),
+				awsConfig: new aws_sdk.Config(aws_sdk.config)
+			});
+			// Create indexes and populate with documents
+			if (resource_options.index_paths) {
+				let index_promises = resource_options.index_paths.map((index_path) => {
+					let absolute_index_path = path.join(process.cwd(), index_path);
+					let index = require(absolute_index_path);
+					console.log('===== ')
+					console.log(index)
+
+					return es_client.indices.create({index: index.name}).then(()=>{
+						// Create documents for each index
+						let docs = index.documents || [];
+						let doc_promises = docs.map((doc)=>{
+							console.log({
+								index: index.name,
+								...doc
+							})
+							return es_client.index({
+								index: index.name,
+								...doc
+							});
+						})
+						return Promise.all(doc_promises);
+					});
+				});
+
+				return Promise.all(index_promises);
+			}
 		}
 	},
 	'AWS::KinesisFirehose::DeliveryStream': {
