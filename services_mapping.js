@@ -8,11 +8,16 @@ module.exports = {
 		arn_prop: 'TableArn',
 		already_exists_error: 'ResourceInUseException',
 		override_properties: (properties) => {
-			// "StreamEnabled" is required for localstack, but does not exists on AWS
 			if (properties.StreamSpecification) {
-				properties.StreamSpecification = {
-					StreamEnabled: !!properties.StreamSpecification.StreamViewType
-				}
+				// "StreamEnabled" is used instead of "StreamViewType" on localstack.
+				// Unfortunately "StreamEnabled" also seems to cause errors.
+				//
+				// properties.StreamSpecification = {
+				// 	StreamEnabled: !!properties.StreamSpecification.StreamViewType
+				// }
+
+				// As a temporary fix, delete this property so localstack doesn't crash
+				delete properties.StreamSpecification;
 			}
 			return properties;
 		},
