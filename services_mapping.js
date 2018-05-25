@@ -82,17 +82,11 @@ module.exports = {
 				let index_promises = resource_options.index_paths.map((index_path) => {
 					let absolute_index_path = path.join(process.cwd(), index_path);
 					let index = require(absolute_index_path);
-					console.log('===== ')
-					console.log(index)
 
 					return es_client.indices.create({index: index.name}).then(()=>{
 						// Create documents for each index
 						let docs = index.documents || [];
 						let doc_promises = docs.map((doc)=>{
-							console.log({
-								index: index.name,
-								...doc
-							})
 							return es_client.index({
 								index: index.name,
 								...doc
