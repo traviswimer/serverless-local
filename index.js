@@ -43,16 +43,11 @@ class ServerlessLocalPlugin {
 
 		this.generateConfig();
 
-		// Setup AWS SDK
-		this.awsProvider = this.serverless.getProvider('aws');
-		this.awsProvider.sdk.config.update({region: this.config.region, endpoint: this.config.host});
-		this.awsProvider.sdk.config.setPromisesDependency(require('bluebird'));
-
 		this.commands = {
 			local: {
 				usage: 'Initializes localstack services',
 				lifecycleEvents: [
-					'ports', 'resources', 'initialize'
+					'aws_config', 'ports', 'resources', 'initialize'
 				],
 				commands: {
 					ports: {
@@ -74,6 +69,7 @@ class ServerlessLocalPlugin {
 		this.hooks = {
 			'before:offline:start:init': () => this.serverless.pluginManager.spawn('local'),
 
+			'local:aws_config': this.awsConfigHandler.bind(this),
 			'local:ports': this.portsHandler.bind(this),
 			'local:resources': this.resourcesHandler.bind(this),
 			'local:initialize': this.initializeHandler.bind(this)
@@ -103,6 +99,15 @@ class ServerlessLocalPlugin {
 		})
 		this.config.endpoints = merged_endpoints;
 		delete this.config.ports; // the "ports" may now be out of sync, so its deleted to avoid accidentally using it.
+	}
+
+	awsConfigHandler(){
+		this.cli_log('-- START: local:aws_config --');
+		// Setup AWS SDK
+		this.awsProvider = this.serverless.getProvider('aws');
+		this.awsProvider.sdk.config.update({region: this.config.region, endpoint: this.config.host});
+		this.awsProvider.sdk.config.setPromisesDependency(require('bluebird'));
+		this.cli_log('-- END: local:aws_config --');
 	}
 
 	portsHandler() {
